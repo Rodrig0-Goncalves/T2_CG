@@ -1,0 +1,13 @@
+- Disponibilizados: 
+- Leitura .obj: check
+- Rotação da cabeça
+- Quebrar (descer em y)
+- Partículas "pulam" ao bater no "chão" - rand em x 
+- Subir no funil (em y)
+- Interpola e volta a posição original
+- 10 segundos extras pra algo novo
+- Câmera móvel ou fixa
+
+- Ideia:
+O rosto vai comprimir em uma bola e explodir e se transformar em uma galáxia
+O rosto vai virar pra tela, sorrir, piscar e desmontar 
