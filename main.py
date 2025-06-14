@@ -7,6 +7,10 @@ from Objeto3D import *
 o:Objeto3D
 tempo_antes = time.time()
 soma_dt = 0
+movimentos = "não"
+
+estado  = "rodando"
+estados = []
 
 def init():
     global o
@@ -122,7 +126,7 @@ def DesenhaCubo():
     glPopMatrix()
 
 def Animacao():
-    global soma_dt, tempo_antes
+    global soma_dt, tempo_antes, movimentos
 
     tempo_agora = time.time()
     delta_time = tempo_agora - tempo_antes
@@ -132,10 +136,26 @@ def Animacao():
 
     if soma_dt > 1.0/30: # Aprox 30 quadros por segundo
         soma_dt = 0
-
-        #o.QuedaCabeca()
-        o.BalancarCabeca()
-        #o.Quicar()
+        
+        if movimentos ==  "não":
+            o.MovimentoSim()
+            if o.estados == "finalizado":
+                movimentos = "trasFrenteConcluido"
+        elif movimentos == "trasFrenteConcluido":
+            o.QuedaCabeca()
+            if o.estados == "finalizado":
+                movimentos = "quedaConcluido"
+        elif movimentos == "quedaConcluido":
+            # movimento tornado
+            movimentos = "tornadoConcluido"
+        
+        elif movimentos == "tornadoConcluído":
+            # retornar cabeça
+            movimentos = "cabecaReformada"
+        elif movimentos == "cabecaReformada":
+            #novo movimento
+            movimentos = "cabou"        
+        
         glutPostRedisplay()
 
 
@@ -173,19 +193,27 @@ def main():
     glutInitWindowSize(640, 480)
 
     # Especifica a posição de início da janela
-    glutInitWindowPosition(100, 100)
+    glutInitWindowPosition(400, 400)
 
     # Cria a janela passando o título da mesma como argumento
     glutCreateWindow(b'Computacao Grafica - 3D')
 
     # Função responsável por fazer as inicializações
     init()
+    
 
     # Registra a funcao callback de redesenho da janela de visualizacao
     glutDisplayFunc(desenha)
 
     # Registra a funcao callback para tratamento das teclas ASCII
     glutKeyboardFunc(teclado)
+    
+    # Botões
+    btn_pausa = QPushButton("Pausar")
+    btn_voltas = QPushButton("Pausar")
+    btn_ir = QPushButton("Adiantar")
+    btn_girar = QPushButton("Girar")
+
 
     glutIdleFunc(Animacao)
 
