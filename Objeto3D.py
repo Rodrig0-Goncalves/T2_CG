@@ -15,6 +15,10 @@ class Objeto3D:
         self.radius   = []
         self.position = Ponto(0,0,0)
         self.rotation = (0,0,0,0)
+        self.fase = 0
+        self.amplitude = 0.05
+        self.z_original = []
+        
         pass
 
     def LoadFile(self, file:str):
@@ -46,7 +50,17 @@ class Objeto3D:
                     self.faces[-1].append(int(fInfo[0]) - 1) # primeiro elemento é índice do vértice da face
                     # ignoramos textura e normal
                 
-            # ignoramos outros tipos de items, no exercício não é necessário e vai só complicar mais
+        # calcular o centro da cabeça
+        soma_x, soma_y, soma_z = 0, 0, 0
+        contador = 0
+        for v in self.vertices:
+            if 0.4 < v.y < 0.6:
+                soma_x += v.x
+                soma_y += v.y
+                soma_z += v.z
+                contador += 1
+                
+        self.centro = Ponto(soma_x/ contador, soma_y/contador, soma_z/contador)
         pass
 
     def DesenhaVertices(self):
@@ -102,13 +116,21 @@ class Objeto3D:
         glPopMatrix()
         pass
 
-# Tentativa fazer cabeça ir para trás
-    def BalancarCabeca(self):
-            for i in range(len(self.vertices)):
-                if self.vertices[i].y > 0.75:
-                    self.vertices[i].z += 0.025
 
-# Estrutura que faz os pontos descerem 
+
+    # Movimento de "sim"
+    def MovimentoSim(self):
+        self.fase += 0.1
+        angulo = self.amplitude * math.sin(self.fase)
+        for i in range(len(self.vertices)):
+            v = self.vertices[i]
+            y = v.y - self.centro.y
+            z = v.z - self.centro.z
+               
+            v.y = math.cos(angulo) * y - math.sin(angulo) * z + self.centro.y
+            v.z = math.sin(angulo) * y + math.cos(angulo) * z + self.centro.z
+
+    # Estrutura que faz os pontos descerem 
     def QuedaCabeca(self):
     
      for i in range(len(self.vertices)):
