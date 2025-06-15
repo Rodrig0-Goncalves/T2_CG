@@ -7,10 +7,10 @@ from Objeto3D import *
 o:Objeto3D
 tempo_antes = time.time()
 soma_dt = 0
-movimentos = "não"
 
-estado  = "rodando"
-estados = []
+estado  = "iniciado"
+estados = ["trasFrente", "quedaCabeca", "tornado", "reformaCabeca"]
+fase = 0
 
 def init():
     global o
@@ -126,7 +126,7 @@ def DesenhaCubo():
     glPopMatrix()
 
 def Animacao():
-    global soma_dt, tempo_antes, movimentos
+    global soma_dt, tempo_antes, estado, fase
 
     tempo_agora = time.time()
     delta_time = tempo_agora - tempo_antes
@@ -137,25 +137,35 @@ def Animacao():
     if soma_dt > 1.0/30: # Aprox 30 quadros por segundo
         soma_dt = 0
         
-        if movimentos ==  "não":
-            o.MovimentoSim()
-            if o.estados == "finalizado":
-                movimentos = "trasFrenteConcluido"
-        elif movimentos == "trasFrenteConcluido":
-            o.QuedaCabeca()
-            if o.estados == "finalizado":
-                movimentos = "quedaConcluido"
-        elif movimentos == "quedaConcluido":
-            # movimento tornado
-            movimentos = "tornadoConcluido"
+        etapa = estados[fase]
         
-        elif movimentos == "tornadoConcluído":
-            # retornar cabeça
-            movimentos = "cabecaReformada"
-        elif movimentos == "cabecaReformada":
-            #novo movimento
-            movimentos = "cabou"        
-        
+        # Controle dos estados a serem executados
+        if estado in ["iniciado", "play"]:
+            if etapa == "trasFrente":
+                o.MovimentoTrasFrente()
+                if o.estadoTrasFrente == "finalizado":
+                    fase = min(fase +1, len(estados)-1)
+                    estado = "iniciado"
+                    
+            elif etapa == "quedaCabeca":
+                o.QuedaCabeca()
+                if o.estadoQueda  == "finalizado":
+                    fase = min(fase+1, len(estados)-1)
+                    estado = "iniciado"
+            #elif etapa == "tornado":
+                
+        elif estado == "back":
+            if fase > 0:
+                fase -= 1
+                o.fase = 0
+                o.resetarVertices()
+            estado = "play"
+            
+        elif estado == "next":
+            if fase < len(estados)- 1:
+                fase += 1
+            estado = "play"
+                     
         glutPostRedisplay()
 
 
@@ -176,9 +186,44 @@ def desenha():
     glutSwapBuffers()
     pass
 
-def teclado(key, x, y):
-    o.rotation = (1, 0, 0, o.rotation[3] + 2)    
+# movimentos das teclas
+def play():
+    global estado
+    estado = "play"
+    o.fase = 0
+    o.estado_queda = ""
+    o.estados_trasFrente = ""
+    
+def back():
+    global estado, etapa
+    if etapa > 0:
+        etapa -= 1
+        estado = "play"
+        o.fase = 0
+        o.estado_queda = ""
+        o.estados_trasFrente = ""
+    
+def next():
+    global estado, etapa
+    if etapa < len(estado):
+        etapa += 1
+        estado = "play"
+        o.fase = 0
+        o.estados = ""
 
+# Teclas a serem usadas
+def teclado(key, x, y):
+    global estado, etapa, fase
+
+    if key == b'p':        
+        estado  = "play"
+    elif key == b'b':
+        estado = "back"
+    elif key == b'n':       
+        estado = "next"
+    elif key == b's':
+        estado = "stop"
+        
     glutPostRedisplay()
     pass
 
@@ -193,7 +238,7 @@ def main():
     glutInitWindowSize(640, 480)
 
     # Especifica a posição de início da janela
-    glutInitWindowPosition(400, 400)
+    glutInitWindowPosition(200, 200)
 
     # Cria a janela passando o título da mesma como argumento
     glutCreateWindow(b'Computacao Grafica - 3D')
@@ -208,13 +253,6 @@ def main():
     # Registra a funcao callback para tratamento das teclas ASCII
     glutKeyboardFunc(teclado)
     
-    # Botões
-    btn_pausa = QPushButton("Pausar")
-    btn_voltas = QPushButton("Pausar")
-    btn_ir = QPushButton("Adiantar")
-    btn_girar = QPushButton("Girar")
-
-
     glutIdleFunc(Animacao)
 
     try:
