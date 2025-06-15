@@ -146,23 +146,31 @@ def Animacao():
                 if o.estadoTrasFrente == "finalizado":
                     fase = min(fase +1, len(estados)-1)
                     estado = "iniciado"
+                    print("Finalizou primeiro movimento")
                     
             elif etapa == "quedaCabeca":
                 o.QuedaCabeca()
                 if o.estadoQueda  == "finalizado":
                     fase = min(fase+1, len(estados)-1) # ir para a próxima etapa sem ultrapassar os limites do array, evita acessar índice inválido 
                     estado = "iniciado"
+                    print("Finalizou segundo movimento")
+                    
             elif etapa == "tornado":
                 o.Tornado()
                 if o.estadoTornado == "finalizado":
                     fase = min (fase+1, len(estado)-1)
                     estado = "iniciado"
-                
+                    print("Finalizou terceiro movimento")
+            elif etapa == "reformaCabeca":
+                o.ReconstruirCabeca()
+                if o.estadoReforma == "finalizado":
+                    fase = min (fase+1, len(estados)-1)
+                    print("Recontrui cabeça")
         elif estado == "back":
             if fase > 0:
                 fase -= 1
                 o.fase = 0
-                o.resetarVertices()
+                o.ResetarVertices()
             estado = "play"
             
         elif estado == "next":
