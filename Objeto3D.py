@@ -19,12 +19,15 @@ class Objeto3D:
         self.amplitude = 0.025
         self.estadoTrasFrente = ""
         self.estadoQueda = ""
-        self.estadoQuicar = ""
         self.estadoTornado = ""
+        self.estadoReforma = ""
         self.verticesOriginais= []
         self.alturaVertices = []
         self.direcaoVertice = []
-        
+        self.tornadoAltura = []
+        self.anguloTornado = []
+        self.raioTornado = []
+        self.tornadoFinal = []
         pass
 
     def LoadFile(self, file:str):
@@ -61,6 +64,16 @@ class Objeto3D:
             for i in self.vertices: # para pegar a altura de cada vértice e as direções dele
                 self.alturaVertices.append(i.y/2)
                 self.direcaoVertice.append(-1)   
+                
+                # define o eixo em que o tornado vai girare subir
+            for i in self.vertices:
+                self.anguloTornado.append(math.atan2(i.z, i.x))
+                self.raioTornado.append(math.hypot(i.x, i.z))
+                self.tornadoAltura.append(i.y)
+                
+                # define um raio para cada vertice subir no tornado
+                offset = random.uniform(-1.5,2.5)
+                self.tornadoFinal.append(i.y +  offset)
                                     
         # calcular o centro da cabeça
         soma_x, soma_y, soma_z = 0, 0, 0
@@ -144,13 +157,10 @@ class Objeto3D:
             
         if  self.fase > 2*math.pi and -0.01 < angulo < 0.01:
             self.estadoTrasFrente = "finalizado"
-            self.fase  = 0
-            print("Finalizou movimento tras frente")
-            
+            self.fase  = 0            
     
 
     # Estrutura que faz os pontos descerem 
-    
     def QuedaCabeca(self):
         finalizou = True
         # Ir sempre até a metade da altura e atualizar até que ela seja igual a 0
@@ -159,7 +169,7 @@ class Objeto3D:
             direcao = self.direcaoVertice[i]
             altura = self.alturaVertices[i] 
                     
-            if altura <= 0.1:
+            if altura == 0 or altura <= 0.1:
                 verticeAtual.y = 0
                 continue
             
@@ -179,14 +189,58 @@ class Objeto3D:
                         self.direcaoVertice[i] = 0
                     else:
                         self.direcaoVertice[i] = -1
-                    
-        if finalizou:
-            self.estadoQuicar = "finalizou"
-            
         
+        if finalizou:
+            self.estadoQueda = "finalizado"
+        
+    # Quase pronto, ajustar
+    def Tornado(self):
+        finalizou = True
+        for i in range(len(self.vertices)):
+            self.anguloTornado[i] += self.speed[i] * (1/30)
+                        
+            if self.vertices[i].y < self.tornadoFinal[i]:
+                self.vertices[i].y += 0.05               
+                finalizou = False
+                
+            x = self.raioTornado[i] * math.cos(self.anguloTornado[i])
+            z = self.raioTornado[i] * math.sin(self.anguloTornado[i])
+                
+            self.vertices[i].x = x
+            self.vertices[i].z = z
+                
+        if finalizou:
+            self.estadoTornado = "finalizado"
+            
+    def ReconstruirCabeca(self):
+        finalizou = True
+        
+        for i in range(len(self.vertices)):
+            atual = self.vertices[i]
+            final = self.verticesOriginais[i]
+            
+            fx = final.x - atual.x
+            fy = final.y - atual.y
+            fz = final.z - atual.z
+            
+            if abs(fx) > 0.01:
+                atual.x += fx *0.1
+                finalizou = False
+                
+            if abs(fy) > 0.01:
+                atual.y += fy *0.1
+                finalizou = False
+                
+            if abs(fz) > 0.01:
+                atual.z += fz *0.1
+                finalizou = False
+                
+        if finalizou:
+            self.estadoReforma = "finalizou"
+            
 
     # Quarda os vértices inicias para usar quando resetar em "b" - porém resetando programa desde o ínicio, ajustar
-    def resetarVertices(self):
+    def ResetarVertices(self):
         for i in range(len(self.vertices)):
             self.vertices[i].x = self.verticesOriginais[i].x
             self.vertices[i].y = self.verticesOriginais[i].y
@@ -195,5 +249,6 @@ class Objeto3D:
             self.fase = 0
             self.estadoQueda = ""
             self.estadoTrasFrente = ""
-        
-         #self.angle[i] += self.speed[i] * (1/30) faz os vértices girarem 
+            self.estadoTornado = ""
+            self.estadoReforma = ""
+          
