@@ -17,8 +17,9 @@ class Objeto3D:
         self.rotation = (0,0,0,0)
         self.fase = 0
         self.amplitude = 0.025
-        self.estados = ""
-        self.z_inicial = []
+        self.estadoTrasFrente = ""
+        self.estadoQueda = ""
+        self.verticesOriginais= []
         
         pass
 
@@ -32,10 +33,13 @@ class Objeto3D:
 
             if values[0] == 'v': 
                 # item é um vértice, os outros elementos da linha são a posição dele
-                self.vertices.append(Ponto(float(values[1]),
+                vertices = Ponto(float(values[1]),
                                            float(values[2]),
-                                           float(values[3])))
+                                           float(values[3]))
                 self.speed.append((random.random() + 0.1))
+                
+                self.vertices.append(vertices)
+                self.verticesOriginais.append(Ponto(vertices.x, vertices.y, vertices.z))
                 
 
                 self.angle.append(math.atan2(float(values[3]), float(values[1])))
@@ -119,8 +123,8 @@ class Objeto3D:
 
 
 
-    # Movimento de "sim"
-    def MovimentoSim(self):
+    # Movimento de ir para tras e para frente
+    def MovimentoTrasFrente(self):
         self.fase += 0.1
         angulo = self.amplitude * math.sin(self.fase)
         for i in range(len(self.vertices)):
@@ -132,13 +136,12 @@ class Objeto3D:
             v.z = math.sin(angulo) * y + math.cos(angulo) * z + self.centro.z
             
         if  self.fase > 2*math.pi and -0.01 < angulo < 0.01:
-            self.estados = "finalizado"
+            self.estadoTrasFrente = "finalizado"
             self.fase  = 0
     
 
     # Estrutura que faz os pontos descerem 
     def QuedaCabeca(self):
-     self.estados = ""
      finalizou = True
     
      for i in range(len(self.vertices)):
@@ -152,10 +155,10 @@ class Objeto3D:
 
             if self.vertices[i].y > 0:
                 self.vertices[i].y -= 0.25
-                
-            finalizou = False                
+            finalizou = False      
+                           
             if finalizou:
-                self.estados = "finalizado"
+                self.estadoQueda = "finalizado"
                      
     def Quicar(self):
      
@@ -165,3 +168,15 @@ class Objeto3D:
             self.angle[i] += self.speed[i] * (1/30)
             novaAltura = self.vertices[i].y /2
             self.vertices[i].y = novaAltura
+
+    # Quarda os vértices inicias para usar quando resetar em "b"
+    def resetarVertices(self):
+        for i in range(len(self.vertices)):
+            self.vertices[i].x = self.verticesOriginais[i].x
+            self.vertices[i].y = self.verticesOriginais[i].y
+            self.vertices[i].z = self.verticesOriginais[i].z
+            
+            self.fase = 0
+            self.estadoQueda = ""
+            self.estadoTrasFrente = ""
+        
