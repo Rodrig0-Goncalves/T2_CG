@@ -150,9 +150,13 @@ def Animacao():
             elif etapa == "quedaCabeca":
                 o.QuedaCabeca()
                 if o.estadoQueda  == "finalizado":
-                    fase = min(fase+1, len(estados)-1)
+                    fase = min(fase+1, len(estados)-1) # ir para a próxima etapa sem ultrapassar os limites do array, evita acessar índice inválido 
                     estado = "iniciado"
-            #elif etapa == "tornado":
+            elif etapa == "tornado":
+                o.Tornado()
+                if o.estadoTornado == "finalizado":
+                    fase = min (fase+1, len(estado)-1)
+                    estado = "iniciado"
                 
         elif estado == "back":
             if fase > 0:
