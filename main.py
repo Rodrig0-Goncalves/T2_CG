@@ -9,7 +9,7 @@ tempo_antes = time.time()
 soma_dt = 0
 
 estado  = "iniciado"
-estados = ["trasFrente", "quedaCabeca", "tornado", "reformaCabeca"]
+estados = ["trasFrente", "quedaCabeca", "tornado", "reformaCabeca", "parteNova"]
 fase = 0
 
 def init():
@@ -125,6 +125,8 @@ def DesenhaCubo():
     glutSolidCone(1, 1, 4, 4)
     glPopMatrix()
 
+
+# controle de todos as etapas do programa
 def Animacao():
     global soma_dt, tempo_antes, estado, fase
 
@@ -144,28 +146,32 @@ def Animacao():
             if etapa == "trasFrente":
                 o.MovimentoTrasFrente()
                 if o.estadoTrasFrente == "finalizado":
-                    fase = min(fase +1, len(estados)-1)
-                    estado = "iniciado"
+                    avancaFase()
                     print("Finalizou primeiro movimento")
                     
             elif etapa == "quedaCabeca":
                 o.QuedaCabeca()
                 if o.estadoQueda  == "finalizado":
-                    fase = min(fase+1, len(estados)-1) # ir para a próxima etapa sem ultrapassar os limites do array, evita acessar índice inválido 
-                    estado = "iniciado"
+                    avancaFase()
                     print("Finalizou segundo movimento")
                     
             elif etapa == "tornado":
                 o.Tornado()
                 if o.estadoTornado == "finalizado":
-                    fase = min (fase+1, len(estado)-1)
-                    estado = "iniciado"
+                    avancaFase()
                     print("Finalizou terceiro movimento")
             elif etapa == "reformaCabeca":
                 o.ReconstruirCabeca()
                 if o.estadoReforma == "finalizado":
-                    fase = min (fase+1, len(estados)-1)
+                    avancaFase()
                     print("Recontrui cabeça")
+                    
+            elif etapa == "parteNova":
+                o.Universo() # fazer a parte nova, diferente do projeto
+                if o.estadoUniverso == "finalizado":
+                    print("Fim.")
+                    estado = "stop"
+                
         elif estado == "back":
             if fase > 0:
                 fase -= 1
@@ -180,6 +186,11 @@ def Animacao():
                      
         glutPostRedisplay()
 
+# Controle das fases a serem feitas, sempre indo para o próximo e cuidado para não passar do limite
+def avancaFase():
+    global fase, estado
+    fase = min (fase+1, len(estados)-1)
+    estado = "iniciado"
 
 def desenha():
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -203,8 +214,10 @@ def play():
     global estado
     estado = "play"
     o.fase = 0
-    o.estado_queda = ""
-    o.estados_trasFrente = ""
+    o.estadoQueda = ""
+    o.estadoTrasFrente = ""
+    o.estadoReforma = ""
+    o.estadoTornado = ""
     
 def back():
     global estado, etapa
@@ -212,8 +225,10 @@ def back():
         etapa -= 1
         estado = "play"
         o.fase = 0
-        o.estado_queda = ""
-        o.estados_trasFrente = ""
+        o.estadoQueda = ""
+        o.estadoTrasFrente = ""
+        o.estadoReforma = ""
+        o.estadoTornado = ""
     
 def next():
     global estado, etapa
@@ -221,7 +236,10 @@ def next():
         etapa += 1
         estado = "play"
         o.fase = 0
-        o.estados = ""
+        o.estadoQueda = ""
+        o.estadoTrasFrente = ""
+        o.estadoReforma = ""
+        o.estadoTornado = ""
 
 # Teclas a serem usadas
 def teclado(key, x, y):
@@ -247,7 +265,7 @@ def main():
     glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH)
 
     # Especifica o tamnho inicial em pixels da janela GLUT
-    glutInitWindowSize(640, 480)
+    glutInitWindowSize(740, 580)
 
     # Especifica a posição de início da janela
     glutInitWindowPosition(200, 200)
