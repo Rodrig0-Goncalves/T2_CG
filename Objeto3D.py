@@ -24,7 +24,7 @@ class Objeto3D:
         self.aneisInicio = []
         self.aneisRaio =[]
         self.aneisAngulo = []
-        self.fasesUniverso = "compreesao" 
+        self.fasesUniverso = "compresao" 
         self.tempoUniverso = 0
         self.planetaRaio = 0.1
         self.position = Ponto(0,0,0)
@@ -55,7 +55,7 @@ class Objeto3D:
                 self.speed.append((random.random() + 0.1))
                 
                 self.vertices.append(vertices)
-                self.verticesOriginais.append(Ponto(vertices.x, vertices.y, vertices.z))
+                self.verticesOriginais.append(Ponto(vertices.x, vertices.y, vertices.z)) #Guarda todas as posições dos vértices para utilizar posteriormente
 
                 self.angle.append(math.atan2(float(values[3]), float(values[1])))
                 self.radius.append(math.hypot(float(values[1]), float(values[3])))
@@ -76,8 +76,8 @@ class Objeto3D:
                 
                 # define o eixo em que o tornado vai girar e subir
             for i in self.vertices:
-                self.anguloTornado.append(math.atan2(i.z, i.x))
-                self.raioTornado.append(math.hypot(i.x, i.z))
+                self.anguloTornado.append(math.atan2(i.z, i.x)) # retorna o angulo entre os vetores em relação no plano 2D, define o angulo do circulo
+                self.raioTornado.append(math.hypot(i.x, i.z)) # retorna a distância do ponto em relação a origem 
                 self.tornadoAltura.append(i.y)
                 
                 # define um raio para cada vertice subir no tornado
@@ -97,18 +97,17 @@ class Objeto3D:
                 self.aneisRaio.append(raio)
                 self.aneisAngulo.append(angulo)
                                                 
-        # calcular o centro da cabeça
+        # calcular o centro da cabeça - pega a coordenada de cada vértice, soma e dívide pelo total, assim conseguido a médias dos pontos que estão no centro
         soma_x, soma_y, soma_z = 0, 0, 0
         contador = 0
-        for v in self.vertices:
-            if 0.4 < v.y < 0.6:
-                soma_x += v.x
-                soma_y += v.y
-                soma_z += v.z
+        for i in self.vertices:
+            if 0.4 < i.y < 0.6:
+                soma_x += i.x
+                soma_y += i.y
+                soma_z += i.z
                 contador += 1
                 
         self.centro = Ponto(soma_x/ contador, soma_y/contador, soma_z/contador)
-        pass
 
     def DesenhaVertices(self):
         glPushMatrix()
@@ -163,8 +162,7 @@ class Objeto3D:
         glPopMatrix()
         pass
 
-
-
+    # ==================================== PARTE NOVA DO PROJETO ==============================================
     # Movimento de ir para tras e para frente
     def MovimentoTrasFrente(self):
         self.fase += 0.1
@@ -181,11 +179,9 @@ class Objeto3D:
             self.estadoTrasFrente = "finalizado"
             self.fase  = 0            
     
-
     # Estrutura que faz os pontos descerem 
     def QuedaCabeca(self):
         finalizou = True
-        # Ir sempre até a metade da altura e atualizar até que ela seja igual a 0
         for i in range(len(self.vertices)):
             verticeAtual = self.vertices[i]
             direcao = self.direcaoVertice[i]
@@ -197,15 +193,16 @@ class Objeto3D:
             
             finalizou = False
             
-            if direcao == -1: #significa que ele esta descendo
+            # blocos executas o quicar dos vértices até a altura
+            if direcao == -1: 
                 verticeAtual.y -= 0.2
                 if verticeAtual.y <= 0:
                     verticeAtual.y = 0
                     self.direcaoVertice[i] = 1 # sobe os vértices
             
-            elif direcao == 1:
+            elif direcao == 1: 
                 verticeAtual.y += 0.2
-                if verticeAtual.y >= altura:
+                if verticeAtual.y >= altura: # sempre indo até a metade da altura anterior
                     self.alturaVertices[i] = altura/2
                     if self.alturaVertices[i] <= 0.01:
                         self.direcaoVertice[i] = 0
@@ -215,16 +212,17 @@ class Objeto3D:
         if finalizou:
             self.estadoQueda = "finalizado"
         
-    # Quase pronto, ajustar
     def Tornado(self):
         finalizou = True
         for i in range(len(self.vertices)):
             self.anguloTornado[i] += self.speed[i] * (1/30)
                         
+            # responsável por  subir os vértices
             if self.vertices[i].y < self.tornadoFinal[i]:
                 self.vertices[i].y += 0.05               
                 finalizou = False
                 
+            # responsavel por fazer as partícualas girarem
             x = self.raioTornado[i] * math.cos(self.anguloTornado[i])
             z = self.raioTornado[i] * math.sin(self.anguloTornado[i])
                 
@@ -237,10 +235,12 @@ class Objeto3D:
     def ReconstruirCabeca(self):
         finalizou = True
         
+        # Resposavel por fazer a animação retornar a posição original aos poucos, interpolanod os vértices
         for i in range(len(self.vertices)):
             atual = self.vertices[i]
             final = self.verticesOriginais[i]
             
+            # identifica se os vértices já estão na posição original, vai colocanso eles proximos dos pontos originais 
             fx = final.x - atual.x
             fy = final.y - atual.y
             fz = final.z - atual.z
@@ -248,12 +248,12 @@ class Objeto3D:
             if abs(fx) > 0.01:
                 atual.x += fx *0.1
                 finalizou = False
-                
+            
             if abs(fy) > 0.01:
                 atual.y += fy *0.1
                 finalizou = False
                 
-            if abs(fz) > 0.01:
+            if abs(fz) > 0.01:   
                 atual.z += fz *0.1
                 finalizou = False
                 
@@ -261,68 +261,76 @@ class Objeto3D:
             self.estadoReforma = "finalizado"
          
     def Universo(self):
-        self.tempoUniverso += 1
+        self.tempoUniverso += 1 # temoporizador para mudança de estados
         
-        if self.fasesUniverso == "compreesao":
-            print("Fase universo: ", self.fasesUniverso)
+        if self.fasesUniverso == "compresao":
             finalizou = True
             comprimir = Ponto(2,0,2) # coordenadas onde os pontos serão comprimidos
                 
-            for i in range(len(self.vertices)):
+            for i in range(len(self.vertices)): # comprime todos os vértices em um unico ponto
                 vertice = self.vertices[i]
                 compX = comprimir.x - vertice.x
                 compY = comprimir.y - vertice.y
                 compZ = comprimir.z - vertice.z
                 
+                # verifica se todos já estão no ponto de compresao
                 if abs(compX) > 0.01 or abs(compY) > 0.01 or abs(compZ) > 0.01:
                     vertice.x += compX * 0.4
                     vertice.z += compZ * 0.4 
                     vertice.y += compY * 0.4 
                     finalizou = False
             if finalizou:
-                self.fasesUniverso = "explosao"
+                self.fasesUniverso = "explosao" # passa para a próxima etapa
                 self.tempoUniverso = 0
           
         elif self.fasesUniverso == "explosao":
-            print("Fase universo: ", self.fasesUniverso)
-            for i in range(len(self.vertices)):
-                vertice = self.vertices[i]
+            for i in range(len(self.vertices)): # espalha os vértices na horizontal
+                vertice = self.vertices[i] 
                 vertice.x += self.explosaoDirecao[i].x * 0.1
                 vertice.y += self.explosaoDirecao[i].y * 0.1
                 vertice.z += self.explosaoDirecao[i].z * 0.1
             
-            if self.tempoUniverso > 100:
+            if self.tempoUniverso > 120: # apos o numero de tempo, passa para a proxima etapa
                 self.aneisInicio = [Ponto(vertice.x, vertice.y, vertice.z) for vertice in self.vertices]
                 self.fasesUniverso = "aneis"
                 self.tempoUniverso = 0
                 
                 
         elif self.fasesUniverso == "aneis":
+            finalizou = True
             for i in range(len(self.vertices)):
                 self.aneisAngulo[i] += 0.02
                 
+                # calculos responsaveis por fazer os vértices girarem no formato desejado
                 raio = self.aneisRaio[i]
                 angulo = self.aneisAngulo[i]
                 
+                # não mexe em y para não ter aneis na vertical
                 destinoX = raio * math.cos(angulo)
                 destinoY = 0
                 destinoZ = raio * math.sin(angulo)
                 
-                atual = self.vertices[i]
-                inicio = self.aneisInicio[i] # para guardar os vertices inicias para as próximas compilações
+                # interpolação dos vértices para fazer uma transição suave -  tem relação com a velocidade em que os vértices vão retornar
                 
-                # interpolação dos vértices para fazer uma transição suave
-                atual.x += (destinoX - atual.x) *0.05
-                atual.y += (destinoY - atual.y) *0.05
-                atual.z += (destinoZ - atual.z) *0.05
+                atual = self.vertices[i]             
+                destX =  destinoX - atual.x
+                destY = destinoY -  atual.y
+                destZ = destinoZ - atual.z   
+                # separação dos cálculo para otimizar a computação
+                atual.x += destX  *0.03
+                atual.y += destY *0.03
+                atual.z += destZ *0.03
                 
+                if abs(destX) > 0.01 or abs(destY) > 0.01 or abs(destZ) > 0.01: # abs ignora o sinal e verifica o quão longe os vértices estão do destino
+                    finalizou = False
                 
-                if self.tempoUniverso > 120:
-                    self.planetaInicio = [Ponto(vertice.x, vertice.y, vertice.z) for vertice in self.vertices]
-                    self.fasesUniverso = "planeta"
-                
+            if self.tempoUniverso > 120:
+                self.planetaInicio = [Ponto(vertice.x, vertice.y, vertice.z) for vertice in self.vertices]
+                self.fasesUniverso = "planeta"
+        # parte não esta sendo executada, trava o processamento -- OLHAR
+        
         elif self.fasesUniverso == "planeta":
-            raio = 3
+            raio = 2
             for i in range(len(self.vertices)):
                 angulo = self.angle[i]
                 altura = (i/len(self.vertices))*math.pi
@@ -334,9 +342,9 @@ class Objeto3D:
                 coordZ = raio * math.sin(altura) * math.sin(angulo)
                 
                 vertice = self.vertices[i]
-                vertice.x += (coordX - vertice.x) * 0.25
-                vertice.y += (coordY - vertice.y) * 0.25
-                vertice.z += (coordZ - vertice.z) * 0.25
+                vertice.x += (coordX - vertice.x) * 0.50
+                vertice.y += (coordY - vertice.y) * 0.50
+                vertice.z += (coordZ - vertice.z) * 0.50
                   
     # Guarda os vértices inicias para usar quando resetar em "b" - porém resetando programa desde o ínicio, ajustar
     def ResetarVertices(self):
